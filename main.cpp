@@ -6,8 +6,8 @@
 #include <QString>
 #include <QStringList>
 
-float calculate(const QChar oper, const float num1, const float num2){
-    switch(oper.toLatin1())
+float calculate(const char oper, const float num1, const float num2){
+    switch(oper)
     {
     case '+':
         return num1 + num2;
@@ -17,6 +17,8 @@ float calculate(const QChar oper, const float num1, const float num2){
         return num1 / num2;
     case '*':
         return num1 * num2;
+    default :
+        throw std::logic_error("invalid operation");
     }
 }
 
@@ -25,53 +27,35 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("Calculator");
     QCoreApplication::setApplicationVersion("1.0");
-    QCommandLineParser parser;
-    parser.setApplicationDescription(QCoreApplication::translate("main",
-    "Calculate two numbers."));
-    parser.addHelpOption();
-    parser.addVersionOption();
 
-    QCommandLineOption sumOption(QStringList() << "a" << "add",
-                QCoreApplication::translate("main", "adds two numbers."));
-    parser.addOption(sumOption);
-
-    QCommandLineOption subOption(QStringList() << "s" << "sub",
-                QCoreApplication::translate("main", "subtracts two numbers."));
-    parser.addOption(subOption);
-
-    QCommandLineOption divOption(QStringList() << "d" << "div",
-                QCoreApplication::translate("main", "divides two numbers."));
-    parser.addOption(divOption);
-
-    QCommandLineOption mulOption(QStringList() << "m" << "mul",
-                QCoreApplication::translate("main", "multiplies two numbers."));
-    parser.addOption(mulOption);
-
-    parser.addPositionalArgument("first-number", QCoreApplication::translate("main", "first-number"));
-    parser.addPositionalArgument("second-number", QCoreApplication::translate("main", "second-number"));
-    parser.process(a);
-    const QStringList args = parser.positionalArguments();
-    if (args.size() != 2) {
-           qDebug() << "Error: Must specify 2 arguments.";
-           parser.showHelp(1);
-       }
 
     float res = 0;
-    bool error = false;
+
+    QString oper_str = argv[1];
+    char oper;
+
+    if (oper_str == "-s" || oper_str == "--sub")
+        oper = '-';
+    else if (oper_str == "-a" || oper_str == "--add")
+        oper = '+';
+    else if (oper_str == "-d" || oper_str == "--div")
+        oper = '/';
+    else if (oper_str == "-m" || oper_str == "--mul")
+        oper = '*';
+    else{
+        qDebug() << "Invalid operation";
+        return 1;
+    }
+
+
+
     bool validate_num1, validate_num2;
-    float num1 = args[0].toFloat(&validate_num1);
-    float num2 = args[1].toFloat(&validate_num2);
+    float num1 = ((QString)argv[2]).toFloat(&validate_num1);
+    float num2 = ((QString)argv[3]).toFloat(&validate_num2);
 
     if (validate_num1 && validate_num2){
-        bool add = parser.isSet(sumOption);
-        bool sub = parser.isSet(subOption);
-        bool div = parser.isSet(divOption);
-        bool mul = parser.isSet(mulOption);
-        QChar oper;
-        add?oper = '+': sub? oper = '-': div? oper = '/' : mul? oper = '*' : error = true;
-        qDebug() << oper;
         res = calculate(oper,num1,num2);
-        qDebug() << num1 << oper.toLatin1() <<num2 << '=' << res;
+        qDebug() << num1 << oper <<num2 << '=' << res;
         return 1;
     }
     else {
